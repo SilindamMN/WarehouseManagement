@@ -1,0 +1,25 @@
+# Ignore Visual Studio temporary files, build results, and
+# user-specific files
+*.log
+*.obj
+*.tmp
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+# Ignore build results
+/[Bb]in/
+/[Dd]ebug*/
+/[Rr]elease*/
+/x64/
+/x86/
+/API/bin/Debug/net6.0
+/API/obj
+/Application/bin/Debug/net6.0
+/Application/obj
+/Domain/bin/Debug/net6.0
+/Persistence
+/WareHouseManagement/.vs
+/WareHouseManagement/obj
+/WareHouseManagement/UnitTest/bin/Debug/net6.0
+/WareHouseManagement/UnitTest/obj
