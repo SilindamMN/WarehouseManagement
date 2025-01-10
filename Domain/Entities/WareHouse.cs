@@ -11,14 +11,14 @@
     /// <summary>
     /// Gets or sets the unique code for the warehouse.
     /// </summary>
-    [Required] // Ensures that WareHouseCode is not null
+    [Required(ErrorMessage = "Warehouse code is required.")]
     [StringLength(50, ErrorMessage = "Warehouse code cannot be longer than 50 characters.")]
     public string WareHouseCode { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the warehouse.
     /// </summary>
-    [Required]
+    [Required(ErrorMessage = "Warehouse name is required.")]
     [StringLength(100, ErrorMessage = "Warehouse name cannot be longer than 100 characters.")]
     public string WareHouseName { get; set; }
 

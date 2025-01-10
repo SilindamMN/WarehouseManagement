@@ -9,7 +9,7 @@
     /// <summary>
     /// Gets or sets the unique identifier for the entity.
     /// </summary>
-    public TID Id { get; set; }
+    public TID? Id { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the entity is active.

@@ -19,7 +19,7 @@
     /// <summary>
     /// Gets or sets the quantity of the product.
     /// </summary>
-    public string WareHouseCode { get; set; }
+    public string? WareHouseCode { get; set; }
 
     /// <summary>
     /// Gets or sets the description of the product.

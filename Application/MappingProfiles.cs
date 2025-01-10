@@ -8,9 +8,10 @@
   {
     public MappingProfiles()
     {
-      CreateMap<Product, ProductDto>().ReverseMap();
-      CreateMap<Product, CreateProductDto>().ReverseMap();
-      CreateMap<Order, OrderDto>().ReverseMap();
+      this.CreateMap<Product, ProductDto>().ReverseMap();
+      this.CreateMap<Product, CreateProductDto>().ReverseMap();
+      this.CreateMap<Order, CreateOrderDto>().ReverseMap();
+      this.CreateMap<Order, OrderDto>().ReverseMap();
       this.CreateMap<WareHouse, WareHouseDto>().ReverseMap();
       this.CreateMap<ProductWareHouse, ProductWareHouseDto>().ReverseMap();
     }

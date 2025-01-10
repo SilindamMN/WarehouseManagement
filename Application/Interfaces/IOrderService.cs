@@ -13,6 +13,12 @@
     /// </summary>
     /// <param name="order">The data transfer object containing the details of the order for the product transfer.</param>
     /// <returns>A task representing the asynchronous operation, containing a general service response DTO indicating the result of product transfer.</returns>
-    Task<GeneralServiceResponseDto> TransferProductAsync(OrderDto order);
+    Task<GeneralServiceResponseDto> TransferProductAsync(CreateOrderDto order);
+
+    /// <summary>
+    /// Retrieves a list of all orders.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation, containing a list of all order details in DTO format.</returns>
+    Task<List<OrderDto>> GetAllOrdersAsync();
   }
 }

@@ -23,76 +23,21 @@
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
+
+      Seeding.Seed(modelBuilder);
       // Configure Order relationships
 
-      modelBuilder.Entity<ProductWareHouse>()
-       .HasOne(pw => pw.Product)
-       .WithMany(p => p.ProductWareHouses)
-       .HasForeignKey(pw => pw.ProductId)
-       .OnDelete(DeleteBehavior.Cascade);
-
-      modelBuilder.Entity<ProductWareHouse>()
-          .HasOne(pw => pw.WareHouse)
-          .WithMany(w => w.ProductWareHouses)
-          .HasForeignKey(pw => pw.WareHouseId)
-          .OnDelete(DeleteBehavior.Cascade);
-
       modelBuilder.Entity<Order>()
-          .HasOne(o => o.Product)
-          .WithMany()
-          .HasForeignKey(o => o.ProductId)
-          .OnDelete(DeleteBehavior.Restrict);
-
-      modelBuilder.Entity<Order>()
-          .HasOne(o => o.SourceWareHouse)
-          .WithMany()
-          .HasForeignKey(o => o.SourceWareHouseId)
-          .OnDelete(DeleteBehavior.Restrict);
+        .HasOne(o => o.SourceWareHouse)
+        .WithMany()
+        .HasForeignKey(o => o.SourceWareHouseId)
+        .OnDelete(DeleteBehavior.Restrict);
 
       modelBuilder.Entity<Order>()
           .HasOne(o => o.DestinationWareHouse)
           .WithMany()
           .HasForeignKey(o => o.DestinationWareHouseId)
           .OnDelete(DeleteBehavior.Restrict);
-
-      modelBuilder.Entity<ProductWareHouse>()
-          .HasOne(pw => pw.Product)
-          .WithMany()
-          .HasForeignKey(pw => pw.ProductId)
-          .OnDelete(DeleteBehavior.Restrict);
-
-
-      modelBuilder.Entity<ProductWareHouse>()
-          .HasOne(pw => pw.WareHouse)
-          .WithMany()
-          .HasForeignKey(pw => pw.WareHouseId)
-          .OnDelete(DeleteBehavior.Restrict);
-
-      modelBuilder.Entity<Order>()
-       .HasOne(o => o.SourceWareHouse)
-       .WithMany()
-       .HasForeignKey(o => o.SourceWareHouseId)
-       .OnDelete(DeleteBehavior.Restrict);
-
-      modelBuilder.Entity<Order>()
-          .HasOne(o => o.DestinationWareHouse)
-          .WithMany()
-          .HasForeignKey(o => o.DestinationWareHouseId)
-          .OnDelete(DeleteBehavior.Restrict);
-
-      modelBuilder.Entity<Order>()
-          .HasOne(o => o.Product)
-          .WithMany()
-          .HasForeignKey(o => o.ProductId)
-          .OnDelete(DeleteBehavior.Cascade);
-
-      modelBuilder.Entity<Product>()
-        .HasIndex(p => p.ProductCode)
-        .IsUnique();
-
-      modelBuilder.Entity<WareHouse>()
-        .HasIndex(p => p.WareHouseCode)
-        .IsUnique();
     }
   }
 }
