@@ -1,23 +1,21 @@
 # Inventory Management API
 
-This project is a RESTful API built with .NET, designed to manage products, warehouses, and orders for moving inventory quantities between warehouses. The API allows for listing and creating products and warehouses, creating orders to move product quantities between warehouses, and querying the available stock of products in warehouses.
+> Built as a technical assessment for a job interview.
+
+A RESTful API built with .NET for managing products, warehouses, and inventory movement between warehouses. Supports listing/creating products and warehouses, creating orders that move stock from one warehouse to another, and querying on-hand quantities by product or warehouse.
 
 ---
 
 ## 📑 Table of Contents
-
 - [Project Overview](#project-overview)
-- [Features](#features)
+- [Data Model](#data-model)
 - [Technologies Used](#technologies-used)
 - [Setup Instructions](#setup-instructions)
-  - [1. Create the Warehouse](#1-create-the-warehouse)
-  - [2. Create the Product and Allocate to Warehouse](#2-create-the-product-and-allocate-to-warehouse)
-  - [3. Database Setup](#3-database-setup)
 - [API Endpoints](#api-endpoints)
-  - [Warehouse Management](#warehouse-management)
-  - [Product Management](#product-management)
-  - [Order Management](#order-management)
-- [Database Schema](#database-schema)
+  - [Products](#products)
+  - [Warehouses](#warehouses)
+  - [Orders](#orders)
+  - [Stock](#stock)
 - [Running the Application](#running-the-application)
 - [Testing](#testing)
 - [Project Structure](#project-structure)
@@ -25,69 +23,143 @@ This project is a RESTful API built with .NET, designed to manage products, ware
 ---
 
 ## 📦 Project Overview
-
-This project demonstrates a simple **Inventory Management System** with the following functionalities:
-
-- **Product Management**: List and create products.
-- **Warehouse Management**: List and create warehouses.
-- **Order Management**: Create orders to transfer products between warehouses.
-- **Inventory Query**: View products available in a warehouse, searchable by product code or warehouse code.
+This project implements a simple **Inventory Management System**:
+- **Products** — list and create (`code` unique, `description`).
+- **Warehouses** — list and create (`code` unique, `name`).
+- **Orders** — move a quantity of a product from a source warehouse to a destination warehouse; decrements source stock, increments destination stock, and rejects the move if the source doesn't have enough stock.
+- **Stock query** — list on-hand quantities per product per warehouse, filterable by product code or warehouse code.
 
 ---
 
-## 🌟 Features
+## Data Model
 
-- **Create and Manage Products and Warehouses**: Add, edit, and delete products and warehouses.
-- **Create Orders for Product Transfer**: Create orders to transfer products between different warehouses.
-- **Real-Time Stock Updates**: Automatically update stock quantities when orders are placed.
-- **Search Inventory**: Search products in a warehouse by product code or warehouse code.
+| Entity | Fields |
+|---|---|
+| **Product** | `Id`, `Code` (unique), `Description` |
+| **Warehouse** | `Id`, `Code` (unique), `Name` |
+| **Stock** | `Id`, `ProductId`, `WarehouseId`, `Quantity` — one row per product/warehouse combination |
+| **Order** | `Id`, `ProductId`, `SourceWarehouseId`, `DestinationWarehouseId`, `Quantity`, `CreatedAt` |
+
+Stock is never edited directly — it only changes as a side effect of placing an `Order`, keeping the movement history auditable via the `Order` table.
 
 ---
 
 ## 🛠️ Technologies Used
-
-- **.NET 6/7**: The application is built using .NET for creating a RESTful API.
-- **Entity Framework Core**: ORM for interacting with relational databases.
-- **SQLite/MySQL/SQL Server**: Database options for storing inventory data.
-- **C#**: Primary language for building the API.
+- **.NET 8** (ASP.NET Core Web API)
+- **Entity Framework Core** (Code-First) as ORM
+- **SQLite** for local development (swappable for SQL Server/MySQL)
+- **C#**
 
 ---
 
 ## 🚀 Setup Instructions
 
-### 1. Create the Warehouse
+### 1. Restore & build
+```bash
+dotnet restore
+dotnet build
+```
 
-Before creating products, create the warehouse where products will be stored. Use the following API endpoint:
+### 2. Apply migrations
+```bash
+dotnet ef migrations add InitialCreate -s ./API -p ./Persistence
+dotnet ef database update -s ./API -p ./Persistence
+```
 
-- **POST** `/api/warehouses/CreateWareHouse`
-  - **Request Body**:
-    ```json
-    {
-      "WarehouseCode": "WH001",
-      "WarehouseName": "Main Warehouse"
-    }
-    ```
-  - **Description**: Creates a new warehouse with the given code and name.
+### 3. Seed order
+There is no required creation order enforced by the API beyond referential integrity, but a natural demo flow is:
+1. Create warehouses
+2. Create products
+3. Create an order to move stock into a warehouse for the first time (a "receipt" can be modeled as an order from a virtual/default warehouse, or seeded directly in stock — see [Notes](#notes) below)
 
-### 2. Create the Product and Allocate to Warehouse
+---
 
-After creating the warehouse, you can add products and assign them to a warehouse.
+## API Endpoints
 
-- **POST** `/api/products/CreateProduct`
-  - **Request Body**:
-    ```json
-    {
-      "ProductCode": "P001",
-      "ProductName": "Widget A",
-      "QuantityInStock": 100,
-      "WarehouseId": 1
-    }
-    ```
-  - **Description**: Creates a new product and associates it with a specific warehouse.
+### Products
+| Method | Route | Description |
+|---|---|---|
+| GET | `/api/products` | List all products |
+| POST | `/api/products` | Create a product |
 
-### 3. Database Setup
+**POST /api/products**
+```json
+{
+  "code": "P001",
+  "description": "Widget A"
+}
+```
 
-1. Open your terminal and navigate to the project directory.
-2. Add the initial migration by running:
-   ```bash
-   dotnet ef migrations add InitialCreate -s .\API -p .\Persistence
+### Warehouses
+| Method | Route | Description |
+|---|---|---|
+| GET | `/api/warehouses` | List all warehouses |
+| POST | `/api/warehouses` | Create a warehouse |
+
+**POST /api/warehouses**
+```json
+{
+  "code": "WH001",
+  "name": "Main Warehouse"
+}
+```
+
+### Orders
+| Method | Route | Description |
+|---|---|---|
+| POST | `/api/orders` | Move a quantity of a product from one warehouse to another |
+
+**POST /api/orders**
+```json
+{
+  "productCode": "P001",
+  "sourceWarehouseCode": "WH001",
+  "destinationWarehouseCode": "WH002",
+  "quantity": 10
+}
+```
+- Rejects the request (400) if the source warehouse doesn't hold enough of the product.
+- On success, decrements `Stock.Quantity` for the source and increments (or creates) it for the destination.
+
+### Stock
+| Method | Route | Description |
+|---|---|---|
+| GET | `/api/stock?productCode=P001` | On-hand quantity of a product across all warehouses |
+| GET | `/api/stock?warehouseCode=WH001` | On-hand quantities of all products in a warehouse |
+
+---
+
+## Running the Application
+```bash
+cd API
+dotnet watch run
+```
+Swagger UI is available at `https://localhost:<port>/swagger` for exploring and calling the endpoints directly.
+
+---
+
+## Testing
+- Use Swagger UI or Postman to exercise the endpoints.
+- Suggested manual test flow:
+  1. Create two warehouses.
+  2. Create a product.
+  3. Seed initial stock into warehouse A.
+  4. Create an order moving some quantity from A to B.
+  5. Query stock by product code — confirm split across A and B sums correctly.
+  6. Attempt to move more than what's in the source warehouse — confirm it's rejected.
+
+---
+
+## Project Structure
+```
+Inventory.sln
+├── API/              # Controllers, Program.cs, DTOs
+├── Application/      # Business logic / handlers
+├── Domain/           # Entities: Product, Warehouse, Stock, Order
+└── Persistence/       # DbContext, EF Core migrations
+```
+
+---
+
+## Notes
+- Since the spec doesn't define a dedicated "stock receipt" endpoint, initial stock is seeded directly via the database or via an order from a placeholder/default warehouse — call this out during the walkthrough as a deliberate scope decision.
